@@ -1,0 +1,80 @@
+#cloud-config
+
+# Variáveis de entrada:
+# - user_name: Nome do usuário a ser criado.
+# - gecos: Nome completo ou descrição do usuário.
+# - groups: Lista de grupos aos quais o usuário pertencerá.
+# - ssh_key: Chave pública SSH a ser autorizada para o usuário.
+# - hostname: Nome do host a ser definido para a VM.
+
+manage_etc_hosts: true  # Permite que o Cloud-Init gerencie automaticamente o arquivo /etc/hosts
+
+users:
+  - name: ${user_name}
+    gecos: ${gecos}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: ${jsonencode(groups)}
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - "${ssh_key}"
+disable_root: true
+ssh_pwauth: false
+
+runcmd:
+  - hostnamectl set-hostname ${hostname}
+  - echo '127.0.1.1 ${hostname}' >> /etc/hosts
+  - dpkg --add-architecture i386
+  # Terraform
+  - wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+  # Ansible
+  - add-apt-repository --yes --update ppa:ansible/ansible
+
+pachage_reboot_if_required: true
+package_update: true
+package_upgrade: true
+packages:
+- htop    # Process monitor
+- curl    # Web Tranfer Data Tool
+- wget    # File Download through URL
+- git    # Versioning Tool
+- snap:
+  - brave
+  - code --classic
+  - devilutionx
+  - discord
+  - drawio
+  - foliate
+  - gimp
+  - kdenlive
+  - libreoffice
+  - notion-desktop
+  - retroarch
+  - steam
+  - zerotier
+- apt:
+  - default-jdk    # Java
+  - software-properties-common    # Dependecies Ansible
+  - virt-manager    # Virtualization
+  - qemu-kvm    # Virtualization
+  - libvirt-daemon-system    # Virtualization
+  - libvirt-clients    # Virtualization
+  - bridge-utils    # Virtualization
+  - terraform
+  - ansible
+
+timezone: America/Sao_Paulo
+locale: pt_BR.UTF-8
+
+write_files:
+  - path: /home/
+    content: |
+      Bem-vindo ao servidor ${hostname}
+      Acesso restrito - Use responsavelmente
+    permissions: '0777' # Permissões do arquivo (opcional)
+    owner: root:root    # Proprietário e grupo do arquivo (opcional)
+
+runcmd:
+  - systemctl enable --now libvirtd
+  - systemctl start libvirtd

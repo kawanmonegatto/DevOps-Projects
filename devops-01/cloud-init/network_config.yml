@@ -1,0 +1,23 @@
+#cloud-config
+
+network:
+  version: 2
+  # ethernets:
+  # eth0:
+  #   dhcp4: no
+  #   dhcp6: no
+  #   accept-ra: false
+  #   addresses:
+  #     - 10.0.0.5/24
+  #     - fd00::5/64
+  #   nameservers:
+  #     addresses:
+  #       - 10.0.0.53
+  #       - 10.0.0.54
+  #       - fd00::53
+  #       - fd00::54
+  #   routes:
+  #     - to: 0.0.0.0/0
+  #       via: 10.0.0.1
+  #     - to: "::/0"
+  #       via: fd00::1
